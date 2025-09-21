@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>相似三角形的應用 出題小幫手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0KOVEMMZMGDqlrmqiKRfenibuzV1PveAAi1xubgAMlQHBVICfgNxw" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzOK91vil/MfLF/r5TCmiRabC/CCLLyQPA-" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURPlLfgvEodFrYVwqTxdMVJnWO6gQrGSxgVIx0s24NNhLvYGHd5iR6" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body { font-family: 'Inter', 'Noto Sans TC', sans-serif; }
+        .config-btn.active {
+            background-color: #f97316; /* orange-500 */
+            color: white;
+            font-weight: bold;
+            border-color: #f97316;
+        }
+        #achievement-toast {
+            transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        #achievement-toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .choice-btn {
+            transition: all 0.2s;
+        }
+        .choice-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .choice-btn.correct {
+            background-color: #22c55e; /* green-500 */
+            color: white;
+            border-color: #16a34a;
+        }
+        .choice-btn.incorrect {
+            background-color: #ef4444; /* red-500 */
+            color: white;
+            border-color: #dc2626;
+        }
+        #scratchpad-canvas {
+            touch-action: none;
+            cursor: crosshair;
+        }
+        #report-section table, .worksheet-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        #report-section th, #report-section td, .worksheet-table th, .worksheet-table td {
+            border: 1px solid #e2e8f0;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+        #report-section th, .worksheet-table th {
+            background-color: #f8fafc;
+        }
+        #report-section .question-truncate, .worksheet-table .question-truncate {
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+</head>
+<body class="bg-stone-100 text-stone-800">
+
+    <div class="container mx-auto p-4 max-w-3xl">
+        <header class="bg-white rounded-xl shadow-md p-6 mb-6 text-center">
+            <h1 class="text-3xl font-bold text-sky-700">出題小幫手</h1>
+            <h2 class="text-xl text-stone-600 mt-1">單元：1-4 相似三角形的應用</h2>
+            <p class="text-xs text-gray-500 mt-2">設計者：lkoj / 版本：v1.0 / 日期：20250921</p>
+            <div class="flex justify-center my-2">
+                <!--計數器的圖像已被設定的鏈接站點。不要執行代碼的任何修改。-->
+                <nobr><table border="0" cellspacing="0" cellpadding="0"><tbody><tr><td><a href="https://www.stylemap.co.jp/counter/taiwan/"><img src="https://www.f-counter.net/ani1/66/1757816192/" alt="網站計數器" border="0" style="margin:0px; padding:0px; border:0px; vertical-align:bottom"></a></td>
+                <td><a href="https://www.stylemap.co.jp/counter/taiwan/"><img src="https://www.f-counter.net/ani2/66/1757816192/" alt="網站計數器" border="0" style="margin:0px; padding:0px; border:0px; vertical-align:bottom"></a></td></tr></tbody></table></nobr>
+            </div>
+            <p class="text-stone-600 mt-2">（根據備課用書例題，為您量身打造的隨機出題練習系統。）</p>
+        </header>
+
+        <main>
+            <!-- Control Panel -->
+            <div id="control-panel" class="bg-white rounded-xl shadow-md p-6 mb-6">
+                <div class="mb-4">
+                    <label for="student-name" class="block font-bold text-lg mb-2 text-stone-700">0. 請輸入學生名字：</label>
+                    <input type="text" id="student-name" class="w-full rounded border-gray-300 p-2 text-lg" placeholder="例如：王小明">
+                </div>
+                <div class="mb-4">
+                    <label class="block font-bold text-lg mb-2 text-stone-700">1. 請選擇要練習的單元：</label>
+                    <div id="topic-selector" class="flex flex-wrap gap-2"></div>
+                </div>
+                <div class="mb-4">
+                    <label class="block font-bold text-lg mb-2 text-stone-700">2. 請設定題目數值範圍：</label>
+                    <div class="flex items-center gap-2">
+                        <input type="number" id="range-min" class="w-24 rounded border-gray-300 text-center" value="2">
+                        <span class="font-bold">到</span>
+                        <input type="number" id="range-max" class="w-24 rounded border-gray-300 text-center" value="10">
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block font-bold text-lg mb-2 text-stone-700">3. 請選擇練習題數：</label>
+                    <div id="question-count-selector" class="flex flex-wrap gap-2">
+                        <button data-count="5" class="config-btn q-count-btn px-4 py-2 rounded-lg transition-colors border-2 border-gray-200">5 題</button>
+                        <button data-count="10" class="config-btn q-count-btn px-4 py-2 rounded-lg transition-colors border-2 border-gray-200 active">10 題</button>
+                        <button data-count="20" class="config-btn q-count-btn px-4 py-2 rounded-lg transition-colors border-2 border-gray-200">20 題</button>
+                    </div>
+                </div>
+                <div class="mt-6 pt-6 border-t">
+                    <label class="block font-bold text-lg mb-2 text-stone-700">4. 請選擇操作：</label>
+                    <div class="space-y-4">
+                        <button id="start-practice-btn" class="w-full bg-orange-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-orange-600 transition-colors text-xl">開始互動練習</button>
+                        <button id="export-worksheet-btn" class="w-full bg-sky-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-sky-700 transition-colors text-xl">匯出紙本練習 (WORD)</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="practice-session" class="hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <div id="progress-tracker" class="text-lg font-semibold text-stone-600 h-6"></div>
+                    <div class="flex items-center gap-4">
+                        <div id="timer" class="text-lg font-bold text-sky-700">⏱️ 00:00</div>
+                        <button id="home-btn" class="bg-stone-200 text-stone-700 font-bold py-2 px-4 rounded-lg hover:bg-stone-300 transition-colors">回首頁</button>
+                    </div>
+                </div>
+                <div id="question-card" class="bg-white rounded-xl shadow-md p-6 mb-6 min-h-[400px] flex flex-col items-center justify-center">
+                    <div id="question-diagram" class="mb-4 w-full h-56 flex items-center justify-center"></div>
+                    <p id="question-text" class="text-xl lg:text-2xl font-bold text-center text-stone-800"></p>
+                </div>
+                <div id="user-input-card" class="bg-white rounded-xl shadow-md p-6 mb-6">
+                    <div id="answer-options-container" class="flex flex-wrap items-center justify-center gap-4">
+                        <!-- Dynamic content: MCQ buttons -->
+                    </div>
+                    <p id="feedback-text" class="text-center font-bold text-lg mt-4 h-6"></p>
+                    <div class="flex justify-center mt-4">
+                        <button id="next-question-btn" class="bg-green-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-600 transition-colors hidden">下一題</button>
+                    </div>
+                    <div id="answer-summary" class="rounded-xl shadow-inner p-6 mt-4 hidden">
+                        <p id="guidance-text" class="text-lg font-bold mb-2"></p>
+                        <div id="answer-steps" class="text-base sm:text-lg whitespace-pre-wrap p-3 bg-white/50 rounded"></div>
+                        <hr class="my-4">
+                        <p id="answer-final" class="text-2xl font-bold"></p>
+                    </div>
+                </div>
+                <!-- Scratchpad Card -->
+                <div id="scratchpad-card" class="bg-white rounded-xl shadow-md p-4 mt-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-bold text-stone-600">計算紙</h3>
+                        <button id="clear-scratchpad" class="bg-stone-200 text-sm px-3 py-1 rounded-lg hover:bg-stone-300">清除</button>
+                    </div>
+                    <canvas id="scratchpad-canvas" class="w-full h-48 bg-stone-50 rounded-lg border"></canvas>
+                </div>
+            </div>
+
+            <div id="report-section" class="bg-white rounded-xl shadow-md p-6 mt-8 hidden">
+                <!-- Content is generated dynamically -->
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modals and hidden elements -->
+    <div id="resume-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white p-8 rounded-lg shadow-xl text-center">
+            <p class="text-xl mb-4">偵測到上次的練習進度，要繼續嗎？</p>
+            <button id="resume-yes" class="bg-green-500 text-white px-6 py-2 rounded-lg mr-4">繼續練習</button>
+            <button id="resume-no" class="bg-red-500 text-white px-6 py-2 rounded-lg">重新開始</button>
+        </div>
+    </div>
+    
+    <div id="achievements-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 p-4">
+        <div class="bg-white p-8 rounded-lg shadow-xl max-w-lg w-full">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">我的成就徽章</h2>
+                <button id="close-achievements" class="text-2xl font-bold">&times;</button>
+            </div>
+            <div id="achievements-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-4"></div>
+        </div>
+    </div>
+
+    <div id="achievement-toast" class="fixed bottom-5 right-5 bg-yellow-400 text-yellow-900 p-4 rounded-lg shadow-lg flex items-center gap-4 z-50">
+        <span class="text-3xl">🏆</span>
+        <div>
+            <p class="font-bold">成就解鎖！</p>
+            <p id="toast-text"></p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            function renderMath(element) {
+                if (window.renderMathInElement) {
+                    renderMathInElement(element || document.body, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false},
+                            {left: '\\(', right: '\\)', display: false},
+                            {left: '\\[', right: '\\]', display: true}
+                        ],
+                        throwOnError: false
+                    });
+                }
+            }
+
+            const topics = [
+                { id: 'simple_measurement', name: '簡易測量' },
+                { id: 'area_perimeter_ratios', name: '面積與周長關係' },
+                { id: 'special_triangles', name: '特殊直角三角形' },
+                { id: 'trig_ratios', name: '三角比' }
+            ];
+
+            let appState = {
+                studentName: '', currentTopic: null, minRange: 2, maxRange: 10,
+                startTime: null, practiceLog: [], totalQuestions: 10,
+                currentQuestionIndex: 0, isSessionActive: false,
+                achievements: {}, correctStreak: 0,
+                sessionAchievements: []
+            };
+            
+            const studentNameInput = document.getElementById('student-name');
+            const topicSelector = document.getElementById('topic-selector');
+            const rangeMinInput = document.getElementById('range-min');
+            const rangeMaxInput = document.getElementById('range-max');
+            const startPracticeBtn = document.getElementById('start-practice-btn');
+            const exportWorksheetBtn = document.getElementById('export-worksheet-btn');
+            const questionText = document.getElementById('question-text');
+            const questionDiagram = document.getElementById('question-diagram');
+            const controlPanel = document.getElementById('control-panel');
+            const practiceSession = document.getElementById('practice-session');
+            const progressTracker = document.getElementById('progress-tracker');
+            const answerOptionsContainer = document.getElementById('answer-options-container');
+            const nextQuestionBtn = document.getElementById('next-question-btn');
+            const feedbackText = document.getElementById('feedback-text');
+            const reportSection = document.getElementById('report-section');
+            const questionCountSelector = document.getElementById('question-count-selector');
+            const answerSummary = document.getElementById('answer-summary');
+            const guidanceText = document.getElementById('guidance-text');
+            const answerSteps = document.getElementById('answer-steps');
+            const answerFinal = document.getElementById('answer-final');
+            const homeBtn = document.getElementById('home-btn');
+            const timerEl = document.getElementById('timer');
+            let timerInterval = null;
+            let questionStartTime = null;
+            let currentQuestion = null;
+            let resizeScratchpad = () => {};
+
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+
+            function getRandomInt(min, max) {
+                min = Math.ceil(min);
+                max = Math.floor(max);
+                if (min > max) [min, max] = [max, min];
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+            
+            function getRandomChoice(arr) {
+                return arr[Math.floor(Math.random() * arr.length)];
+            }
+
+            function generateOptions(correctAnswer, generatorFn, isNumeric=true) {
+                let options = new Set();
+                 if (isNumeric) {
+                    const correctNum = Number(correctAnswer.toFixed(2));
+                    options.add(correctNum);
+                     while (options.size < 4) {
+                        const wrongAnswer = generatorFn();
+                        options.add(Number(wrongAnswer.toFixed(2)));
+                    }
+                } else {
+                    options.add(correctAnswer);
+                     while (options.size < 4) {
+                        const wrongAnswer = generatorFn();
+                        if(wrongAnswer !== correctAnswer) options.add(wrongAnswer);
+                    }
+                }
+                return shuffleArray(Array.from(options));
+            }
+            
+            const questionGenerators = {
+                simple_measurement: () => {
+                    const type = getRandomChoice(['shadow', 'river']);
+                    if (type === 'shadow') {
+                        const h1 = (getRandomInt(15, 20) / 10); // 1.5 to 2.0 m
+                        const ratio = getRandomInt(8, 20) / 10; // shadow ratio 0.8 to 2.0
+                        const s1 = h1 * ratio;
+                        const s2 = getRandomInt(appState.minRange, appState.maxRange);
+                        const h2 = (h1 / s1) * s2;
+
+                        const question = `一個身高為 ${h1} 公尺的人，影長為 ${s1.toFixed(2)} 公尺。在同一時間，旁邊一棵樹的影長是 ${s2} 公尺，請問樹高是多少公尺？`;
+                        const answer = h2;
+                        const steps = `由 AA 相似可知，物高與影長成正比：<br>
+                                     $\\frac{人的身高}{人的影長} = \\frac{樹的高度}{樹的影長}$<br>
+                                     $\\frac{${h1}}{${s1.toFixed(2)}} = \\frac{x}{${s2}}$<br>
+                                     $x = \\frac{${h1} \\times ${s2}}{${s1.toFixed(2)}} = ${answer.toFixed(2)}$ 公尺`;
+                        const options = generateOptions(answer, () => answer + getRandomInt(-3, 3) * 0.5 + 0.1);
+                         const diagram = `<svg viewBox="0 0 150 70" class="w-full h-auto max-w-sm mx-auto"><line x1="10" y1="60" x2="140" y2="60" stroke="black"/><path d="M 30 60 V ${60 - h1*10}" stroke="blue" stroke-width="2"/><text x="20" y="${55 - h1*10}" font-size="5">${h1}m</text><path d="M 110 60 V ${60 - h2*2}" stroke="green" stroke-width="4"/><text x="115" y="${55-h2*2}" font-size="5">x</text><line x1="30" y1="${60 - h1*10}" x2="${30 - s1*10}" y2="60" stroke="orange" stroke-dasharray="2"/><line x1="110" y1="${60-h2*2}" x2="${110-s2*5}" y2="60" stroke="orange" stroke-dasharray="2"/><text x="${30 - s1*5}" y="68" font-size="5">${s1.toFixed(2)}m</text><text x="${110-s2*2.5}" y="68" font-size="5">${s2}m</text></svg>`;
+                        return { question, answer, steps, options, diagram };
+                    } else { // river
+                        const d2 = getRandomInt(appState.minRange, appState.maxRange - 2);
+                        const m_width = d2 + getRandomInt(1, 3);
+                        const d1 = getRandomInt(appState.maxRange, appState.maxRange + 10);
+                        const r_width = (d1 / d2) * m_width;
+
+                        const question = `為測量河寬 $\\overline{AB}$，在岸上取點 C, D, E，使得 $\\overline{AC} \\perp \\overline{CD}$ 且 $\\overline{DE} \\perp \\overline{CD}$。若測得 $\\overline{AC}=${d1}$ 公尺，$\\overline{CD}=${d2}$ 公尺，$\\overline{DE}=${m_width}$ 公尺，求河寬 $\\overline{AB}$？`;
+                        const answer = r_width;
+                        const steps = `因為 $\\angle ACB = \\angle DCE$ (對頂角) 且 $\\angle A = \\angle D = 90^\\circ$，<br>
+                                     所以 $\\triangle ABC \\sim \\triangle DEC$ (AA相似)。<br>
+                                     $\\frac{\\overline{AB}}{\\overline{DE}} = \\frac{\\overline{AC}}{\\overline{DC}}$<br>
+                                     $\\frac{x}{${m_width}} = \\frac{${d1}}{${d2}}$<br>
+                                     $x = \\frac{${d1} \\times ${m_width}}{${d2}} = ${answer.toFixed(2)}$ 公尺`;
+                        const options = generateOptions(answer, () => answer * (getRandomInt(5, 15)/10) );
+                        const diagram = `<svg viewBox="0 0 120 100" class="w-full h-auto max-w-sm mx-auto"><path d="M 0 50 H 120" stroke="#38bdf8" stroke-width="20" fill="#7dd3fc"/><path d="M 20 0 V 100" stroke="black"/><path d="M 80 0 V 100" stroke="black"/><text x="18" y="8" font-size="5">A</text><text x="18" y="95" font-size="5">B</text><text x="82" y="8" font-size="5">C</text><text x="82" y="30" font-size="5">D</text><text x="102" y="30" font-size="5">E</text><line x1="20" y1="90" x2="80" y2="10" stroke-dasharray="2" stroke="black"/><text x="45" y="8" font-size="5">${d1}</text><text x="84" y="20" font-size="5">${d2}</text><text x="104" y="40" font-size="5">${m_width}</text></svg>`;
+                        return { question, answer, steps, options, diagram };
+                    }
+                },
+                area_perimeter_ratios: () => {
+                    const type = getRandomChoice(['side_to_area', 'area_to_side', 'midpoint']);
+                    if (type === 'side_to_area') {
+                        const r1 = getRandomInt(appState.minRange, appState.maxRange - 2);
+                        const r2 = r1 + getRandomInt(1,3);
+                        const area1 = getRandomInt(10,30);
+                        const area2 = area1 * (r2*r2) / (r1*r1);
+
+                        const question = `若兩相似三角形的對應邊長比為 $${r1}:${r2}$，且小三角形的面積為 ${area1}，則大三角形的面積為何？`;
+                        const answer = area2;
+                        const steps = `相似三角形的面積比 = 對應邊長的平方比。<br>
+                                     面積比 = $${r1}^2 : ${r2}^2 = ${r1*r1} : ${r2*r2}$<br>
+                                     設大三角形面積為 x，則 $${area1} : x = ${r1*r1} : ${r2*r2}$<br>
+                                     $x = \\frac{${area1} \\times ${r2*r2}}{${r1*r1}} = ${answer.toFixed(2)}$`;
+                        const options = generateOptions(answer, () => answer + getRandomInt(-5, 5) + 0.1);
+                        const diagram = `<svg viewBox="0 0 160 70" class="w-full h-auto max-w-sm mx-auto"><polygon points="10,60 50,60 30,30" fill="#fef9c3" stroke="#ca8a04"/><text x="25" y="25" font-size="5">A=${area1}</text><text x="75" y="45">~</text><polygon points="90,60 170,60 130,-10" fill="#fef9c3" stroke="#ca8a04"/><text x="125" y="0" font-size="5">A=?</text></svg>`;
+                        return { question, answer, steps, options, diagram };
+
+                    } else if (type === 'area_to_side') {
+                        const r1 = getRandomInt(appState.minRange, appState.maxRange - 2);
+                        const r2 = r1 + getRandomInt(1,3);
+                        const area1 = r1*r1 * getRandomInt(2,5);
+                        const area2 = r2*r2 * (area1 / (r1*r1));
+                        const peri1 = (r1 + r1+1 + r1+2) * (r1);
+                        const peri2 = peri1 * (r2/r1);
+                        
+                        const question = `若兩相似三角形的面積比為 $${area1}:${area2}$，且小三角形的周長為 ${peri1}，則大三角形的周長為何？`;
+                        const answer = peri2;
+                        const steps = `面積比 = $${area1}:${area2} = ${r1*r1}:${r2*r2}$<br>
+                                     邊長比 = $\\sqrt{${r1*r1}}:\\sqrt{${r2*r2}} = ${r1}:${r2}$<br>
+                                     周長比等於邊長比，所以周長比也是 $${r1}:${r2}$。<br>
+                                     設大三角形周長為 x，則 $${peri1} : x = ${r1} : ${r2}$<br>
+                                     $x = \\frac{${peri1} \\times ${r2}}{${r1}} = ${answer.toFixed(2)}$`;
+                        const options = generateOptions(answer, () => answer + getRandomInt(-5, 5));
+                        const diagram = `<svg viewBox="0 0 160 70" class="w-full h-auto max-w-sm mx-auto"><polygon points="10,60 50,60 30,30" fill="#fef9c3" stroke="#ca8a04"/><text x="15" y="25" font-size="5">A=${area1}, P=${peri1}</text><text x="75" y="45">~</text><polygon points="90,60 170,60 130,-10" fill="#fef9c3" stroke="#ca8a04"/><text x="95" y="0" font-size="5">A=${area2}, P=?</text></svg>`;
+                        return { question, answer, steps, options, diagram };
+                    } else { // midpoint
+                        const big_area = getRandomInt(20, 100) * 4;
+                        const small_area = big_area / 4;
+                        const question = `$\\triangle ABC$ 中，D, E, F 分別為三邊中點，若 $\\triangle ABC$ 的面積為 ${big_area}，則中點連成的 $\\triangle DEF$ 面積為何？`;
+                        const answer = small_area;
+                        const steps = `三角形三邊中點連線段所形成的新三角形，面積為原三角形面積的 $\\frac{1}{4}$。<br>
+                                     $\\triangle DEF$ 面積 = $\\triangle ABC$ 面積 $\\times \\frac{1}{4}$<br>
+                                     $= ${big_area} \\times \\frac{1}{4} = ${answer}$`;
+                        const options = generateOptions(answer, () => getRandomChoice([big_area/2, big_area/3, big_area]));
+                        const diagram = `<svg viewBox="0 0 120 100" class="w-full h-auto max-w-sm mx-auto"><polygon points="10,90 110,90 60,10" fill="#f1f5f9" stroke="black"/><text x="50" y="50" font-size="6">A=${big_area}</text><polygon points="85,50 60,90 35,50" fill="#fde68a" stroke="#f59e0b"/><text x="55" y="70" font-size="6">A=?</text></svg>`;
+                        return { question, answer, steps, options, diagram };
+                    }
+                },
+                special_triangles: () => {
+                    const type = getRandomChoice(['45', '3060']);
+                    if (type === '45') {
+                        const leg = getRandomInt(appState.minRange, appState.maxRange);
+                        const hyp = leg * Math.sqrt(2);
+                        const given = getRandomChoice(['leg', 'hyp']);
+                        if (given === 'leg') {
+                            const question = `一個 $45^\\circ-45^\\circ-90^\\circ$ 的等腰直角三角形，若一股長為 ${leg}，其斜邊長為何？`;
+                            const answer = hyp;
+                            const steps = `邊長比為 $1:1:\\sqrt{2}$。<br>
+                                         斜邊 = 股長 $\\times \\sqrt{2} = ${leg}\\sqrt{2} \\approx ${answer.toFixed(2)}$`;
+                            const options = generateOptions(answer, () => leg * getRandomChoice([1, 2, Math.sqrt(3)]));
+                             return { question, answer, steps, options };
+                        } else {
+                            const question = `一個 $45^\\circ-45^\\circ-90^\\circ$ 的等腰直角三角形，若斜邊長為 ${hyp.toFixed(2)}，其一股長為何？`;
+                            const answer = leg;
+                            const steps = `邊長比為 $1:1:\\sqrt{2}$。<br>
+                                         股長 = 斜邊 $\\div \\sqrt{2} = \\frac{${hyp.toFixed(2)}}{\\sqrt{2}} = ${leg}$`;
+                            const options = generateOptions(answer, () => hyp / getRandomChoice([1, 2, Math.sqrt(3)]));
+                            return { question, answer, steps, options };
+                        }
+                    } else { // 30-60-90
+                        const short_leg = getRandomInt(appState.minRange, appState.maxRange);
+                        const long_leg = short_leg * Math.sqrt(3);
+                        const hyp = short_leg * 2;
+                        const given = getRandomChoice(['short', 'long', 'hyp']);
+
+                        if (given === 'short') {
+                             const question = `一個 $30^\\circ-60^\\circ-90^\\circ$ 的直角三角形，若 $30^\\circ$ 角的對邊（最短邊）長為 ${short_leg}，其斜邊長為何？`;
+                             const answer = hyp;
+                             const steps = `邊長比為 $1:\\sqrt{3}:2$。最短邊對應比例 1。<br>
+                                         斜邊（對應比例 2）= 最短邊 $\\times 2 = ${short_leg} \\times 2 = ${answer}$`;
+                             const options = generateOptions(answer, () => short_leg * getRandomChoice([1, Math.sqrt(2), Math.sqrt(3)]));
+                             return { question, answer, steps, options };
+                        } else if (given === 'long') {
+                             const question = `一個 $30^\\circ-60^\\circ-90^\\circ$ の直角三角形，若 $60^\\circ$ 角の對邊長為 ${long_leg.toFixed(2)}，其最短邊長為何？`;
+                             const answer = short_leg;
+                             const steps = `邊長比為 $1:\\sqrt{3}:2$。$60^\\circ$ 對邊對應比例 $\\sqrt{3}$。<br>
+                                          最短邊（對應比例 1）= $60^\\circ$對邊 $\\div \\sqrt{3} = \\frac{${long_leg.toFixed(2)}}{\\sqrt{3}} = ${answer}$`;
+                             const options = generateOptions(answer, () => long_leg / getRandomChoice([1, 2, Math.sqrt(2)]));
+                             return { question, answer, steps, options };
+                        } else { // hyp
+                             const question = `一個 $30^\\circ-60^\\circ-90^\\circ$ の直角三角形，若斜邊長為 ${hyp}，其 $60^\\circ$ 角の對邊長為何？`;
+                             const answer = long_leg;
+                             const steps = `邊長比為 $1:\\sqrt{3}:2$。斜邊對應比例 2。<br>
+                                         最短邊 = 斜邊 $\\div 2 = ${hyp} \\div 2 = ${short_leg}$<br>
+                                         $60^\\circ$對邊 = 最短邊 $\\times \\sqrt{3} = ${short_leg}\\sqrt{3} \\approx ${answer.toFixed(2)}$`;
+                             const options = generateOptions(answer, () => hyp * getRandomChoice([0.5, 1, Math.sqrt(2)/2]));
+                             return { question, answer, steps, options };
+                        }
+                    }
+                },
+                trig_ratios: () => {
+                    const sides = getRandomChoice([[3,4,5], [5,12,13], [8,15,17], [7,24,25]]);
+                    const a = sides[0], b = sides[1], c = sides[2];
+                    const angle = getRandomChoice(['A', 'B']);
+                    const ratio = getRandomChoice(['sin', 'cos', 'tan']);
+
+                    const [opp, adj] = (angle === 'A') ? [a, b] : [b, a];
+                    
+                    let question, answer_val;
+                    let answer_text = '';
+                    switch(ratio) {
+                        case 'sin':
+                            answer_val = opp/c;
+                            answer_text = `\\frac{${opp}}{${c}}`;
+                            break;
+                        case 'cos':
+                            answer_val = adj/c;
+                            answer_text = `\\frac{${adj}}{${c}}`;
+                            break;
+                        case 'tan':
+                            answer_val = opp/adj;
+                            answer_text = `\\frac{${opp}}{${adj}}`;
+                            break;
+                    }
+                    question = `在直角 $\\triangle ABC$ 中，$\\angle C=90^\\circ$，三邊長分別為 ${a}, ${b}, ${c}$。若 $\\overline{BC}=${a}, \\overline{AC}=${b}$，求 $\\${ratio}(${angle})$？`;
+
+                    const steps = `相對於角 ${angle}：<br>
+                                 對邊 = ${opp}，鄰邊 = ${adj}，斜邊 = ${c}<br>
+                                 $\\${ratio}(${angle}) = \\frac{\\text{${(ratio==='tan' ? '對邊' : (ratio==='sin'?'對邊':'鄰邊'))}}}{\\text{${(ratio==='tan' ? '鄰邊' : '斜邊')}}} = ${answer_text}$`;
+                    
+                    const options = generateOptions(answer_val, () => {
+                        const wrong_opp = getRandomChoice([a,b,c]);
+                        const wrong_adj = getRandomChoice([a,b,c].filter(s => s !== wrong_opp));
+                        return wrong_opp / wrong_adj;
+                    });
+                    const diagram = `<svg viewBox="0 0 100 70" class="w-full h-auto max-w-xs mx-auto"><polygon points="10,60 90,60 90,10" fill="#e0f2fe" stroke="#0ea5e9"/><text x="5" y="60" font-size="5">A</text><text x="92" y="60" font-size="5">C</text><text x="92" y="10" font-size="5">B</text><text x="45" y="68" font-size="5">${b}</text><text x="95" y="35" font-size="5">${a}</text><text x="40" y="30" font-size="5">${c}</text></svg>`;
+                    return { question, answer: answer_val, steps, options, diagram };
+                }
+            };
+
+            function getGuidanceText(topicId) {
+                const guidanceMap = {
+                    simple_measurement: "是不是忘記要『對應邊成比例』了呢？例如：高對高、影長對影長。",
+                    area_perimeter_ratios: "記得喔！邊長、周長是一樣的比例，但『面積』的比例要平方！",
+                    special_triangles: "口訣再念一次！45度是 1:1:√2，30-60-90度是 1:√3:2。",
+                    trig_ratios: "sin, cos, tan 只是邊長的代號，想想看草寫的 s, c, t 怎麼畫，就不會搞混對邊、鄰邊和斜邊了！"
+                };
+                return guidanceMap[topicId] || "沒關係，我們再來一次！";
+            }
+            
+            function renderTopics() {
+                topicSelector.innerHTML = '';
+                topics.forEach(topic => {
+                    const button = document.createElement('button');
+                    button.id = `topic-${topic.id}`;
+                    button.className = 'config-btn topic-select-btn px-4 py-2 rounded-lg transition-colors border-2 border-gray-200';
+                    button.textContent = topic.name;
+                    button.onclick = () => {
+                        appState.currentTopic = topic.id;
+                        document.querySelectorAll('.topic-select-btn').forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+                    };
+                    topicSelector.appendChild(button);
+                });
+                const firstTopicButton = topicSelector.querySelector('.topic-select-btn');
+                if (firstTopicButton) {
+                    firstTopicButton.click();
+                }
+            }
+            
+            function initializeConfigSelectors() {
+                questionCountSelector.addEventListener('click', (e) => {
+                    if (e.target.dataset.count) {
+                        document.querySelectorAll('.q-count-btn').forEach(btn => btn.classList.remove('active'));
+                        e.target.classList.add('active');
+                        appState.totalQuestions = parseInt(e.target.dataset.count);
+                    }
+                });
+            }
+            
+            function goHome() {
+                appState.isSessionActive = false;
+                stopTimer();
+                reportSection.classList.add('hidden');
+                practiceSession.classList.add('hidden');
+                controlPanel.classList.remove('hidden');
+            }
+
+            function startPractice() {
+                let min = parseInt(rangeMinInput.value);
+                let max = parseInt(rangeMaxInput.value);
+                if(min > max) {
+                    [rangeMinInput.value, rangeMaxInput.value] = [max, min];
+                    alert("數字範圍的最小值大於最大值，已自動為您交換。");
+                }
+
+                appState.studentName = studentNameInput.value;
+                if (!appState.studentName) {
+                    alert('請先輸入學生名字！');
+                    return;
+                }
+                if (!appState.currentTopic) {
+                    alert('請先選擇一個單元！');
+                    return;
+                }
+                
+                appState.isSessionActive = true;
+                appState.startTime = new Date();
+                appState.practiceLog = [];
+                appState.currentQuestionIndex = 0;
+                appState.correctStreak = 0;
+                appState.sessionAchievements = [];
+                
+                controlPanel.classList.add('hidden');
+                practiceSession.classList.remove('hidden');
+                resizeScratchpad();
+                reportSection.classList.add('hidden');
+                startTimer();
+                loadQuestion();
+            }
+
+            function loadQuestion() {
+                if (appState.currentQuestionIndex >= appState.totalQuestions) {
+                    finishPractice();
+                    return;
+                }
+
+                appState.minRange = parseInt(rangeMinInput.value) || 1;
+                appState.maxRange = parseInt(rangeMaxInput.value) || 10;
+                
+                currentQuestion = questionGenerators[appState.currentTopic]();
+                
+                progressTracker.textContent = `第 ${appState.currentQuestionIndex + 1} / ${appState.totalQuestions} 題`;
+                
+                feedbackText.textContent = '';
+                answerSummary.classList.add('hidden');
+                nextQuestionBtn.classList.add('hidden');
+                
+                renderQuestionAndOptions();
+                questionStartTime = new Date();
+            }
+            
+            function renderQuestionAndOptions() {
+                answerOptionsContainer.innerHTML = '';
+                questionDiagram.innerHTML = ''; 
+                
+                if (currentQuestion.diagram) {
+                    questionDiagram.innerHTML = currentQuestion.diagram;
+                }
+
+                questionText.innerHTML = currentQuestion.question;
+                renderMath(questionText);
+
+                const optionsGrid = document.createElement('div');
+                optionsGrid.className = 'grid grid-cols-1 md:grid-cols-2 gap-4';
+                
+                currentQuestion.options.forEach(option => {
+                    const button = document.createElement('button');
+                    let displayOption = (typeof option === 'number') ? option.toFixed(2).replace(/\.00$/, '') : option;
+                    button.innerHTML = displayOption;
+                    button.className = 'choice-btn p-4 rounded-lg border-2 text-xl';
+                    button.dataset.value = option;
+                    optionsGrid.appendChild(button);
+                });
+                answerOptionsContainer.appendChild(optionsGrid);
+                renderMath(answerOptionsContainer);
+            }
+
+            function handleMcqSelection(clickedButton) {
+                const selectedValue = clickedButton.dataset.value;
+                answerOptionsContainer.querySelectorAll('.choice-btn').forEach(btn => btn.disabled = true);
+                
+                const isCorrect = Math.abs(parseFloat(selectedValue) - parseFloat(currentQuestion.answer)) < 0.01;
+                handleAnswerSubmission(isCorrect, selectedValue);
+            }
+            
+            function handleAnswerSubmission(isCorrect, userAnswer) {
+                if (!currentQuestion) return;
+
+                const timeTaken = ((new Date() - questionStartTime) / 1000).toFixed(1);
+
+                appState.practiceLog.push({
+                    topicId: appState.currentTopic,
+                    question: currentQuestion.question,
+                    userAnswer: userAnswer,
+                    correctAnswer: currentQuestion.answer,
+                    isCorrect: isCorrect,
+                    timeTaken: timeTaken
+                });
+                
+                feedbackText.textContent = isCorrect ? '✔️ 答對了！' : '❌ 不對喔...';
+                feedbackText.className = `text-center font-bold text-lg mt-4 h-6 ${isCorrect ? 'text-green-600' : 'text-red-600'}`;
+
+                answerOptionsContainer.querySelectorAll('.choice-btn').forEach(btn => {
+                    const btnValue = parseFloat(btn.dataset.value);
+                    const correctValue = parseFloat(currentQuestion.answer);
+                    const selectedValue = parseFloat(userAnswer);
+
+                    if (Math.abs(btnValue - correctValue) < 0.01) {
+                        btn.classList.add('correct');
+                    } else if (Math.abs(btnValue - selectedValue) < 0.01) {
+                        btn.classList.add('incorrect');
+                    }
+                });
+                
+                answerSteps.innerHTML = currentQuestion.steps;
+                let finalAnswerDisplay = (typeof currentQuestion.answer === 'number') 
+                    ? currentQuestion.answer.toFixed(2).replace(/\.00$/, '') 
+                    : currentQuestion.answer;
+                answerFinal.innerHTML = `正確答案： ${finalAnswerDisplay}`;
+                
+                if(isCorrect) {
+                    guidanceText.textContent = "太棒了！這是這題的數學翻譯：";
+                    answerSummary.className = "rounded-xl shadow-inner p-6 mt-4 bg-green-50 text-green-800";
+                } else {
+                    guidanceText.textContent = getGuidanceText(appState.currentTopic);
+                    answerSummary.className = "rounded-xl shadow-inner p-6 mt-4 bg-red-50 text-red-800";
+                }
+                answerSummary.classList.remove('hidden');
+                renderMath(answerSummary);
+
+                nextQuestionBtn.classList.remove('hidden');
+
+                if (appState.currentQuestionIndex >= appState.totalQuestions - 1) {
+                    nextQuestionBtn.textContent = '完成練習 & 查看報告';
+                } else {
+                    nextQuestionBtn.textContent = '下一題';
+                }
+                updateAchievements(isCorrect, timeTaken);
+                saveState();
+            }
+
+            function nextQuestion() {
+                appState.currentQuestionIndex++;
+                loadQuestion();
+            }
+            
+            function finishPractice() {
+                appState.isSessionActive = false;
+                stopTimer();
+                practiceSession.classList.add('hidden');
+                reportSection.classList.remove('hidden');
+                renderReport();
+                
+                if (!appState.achievements.firstPractice) {
+                    unlockAchievement('firstPractice');
+                }
+                
+                const allCorrect = appState.practiceLog.every(log => log.isCorrect);
+                if (allCorrect && appState.practiceLog.length > 0) {
+                    const masterAchievementId = `master_${appState.currentTopic}`;
+                    unlockAchievement(masterAchievementId);
+                }
+                saveState();
+            }
+
+            function analyzeErrors(practiceLog) {
+                const wrongAnswers = practiceLog.filter(log => !log.isCorrect);
+                if (wrongAnswers.length === 0) {
+                    return {
+                        analysis: "太厲害了，本次練習全部答對！",
+                        suggestion: "所有概念都掌握得非常好了，繼續保持！"
+                    };
+                }
+
+                const errorCounts = {};
+                wrongAnswers.forEach(log => {
+                    errorCounts[log.topicId] = (errorCounts[log.topicId] || 0) + 1;
+                });
+
+                const mainErrorTopicId = Object.keys(errorCounts).reduce((a, b) => errorCounts[a] > errorCounts[b] ? a : b);
+                const mainErrorTopicName = topics.find(t => t.id === mainErrorTopicId)?.name || '未知';
+
+                const analysis = `本次練習中，錯誤主要集中在「${mainErrorTopicName}」這個單元。`;
+                const suggestion = getGuidanceText(mainErrorTopicId) + " 可以多練習這個單元的題目來加強喔！";
+
+                return { analysis, suggestion };
+            }
+
+            function generateFullLogTable(truncate = true) {
+                let tableHtml = '<table class="worksheet-table"><thead><tr><th>題號</th><th>題目</th><th>您的答案</th><th>正確答案</th><th>結果</th><th>作答時間</th></tr></thead><tbody>';
+                appState.practiceLog.forEach((log, index) => {
+                    const questionCellClass = truncate ? 'class="question-truncate"' : '';
+                    let userAnswerDisplay = (typeof log.userAnswer === 'number') ? Number(log.userAnswer).toFixed(2).replace(/\.00$/, '') : log.userAnswer;
+                    let correctAnswerDisplay = (typeof log.correctAnswer === 'number') ? Number(log.correctAnswer).toFixed(2).replace(/\.00$/, '') : log.correctAnswer;
+                    
+                    tableHtml += `<tr>
+                        <td>${index + 1}</td>
+                        <td ${questionCellClass}>${log.question}</td>
+                        <td>${userAnswerDisplay}</td>
+                        <td>${correctAnswerDisplay}</td>
+                        <td>${log.isCorrect ? '✔️' : '❌'}</td>
+                        <td>${log.timeTaken}秒</td>
+                    </tr>`;
+                });
+                tableHtml += '</tbody></table>';
+                return tableHtml;
+            }
+            
+            function generateReportHtml(isForScreen) {
+                const total = appState.practiceLog.length;
+                if (total === 0) return "";
+
+                const endTime = new Date();
+                const correctCount = appState.practiceLog.filter(log => log.isCorrect).length;
+                const accuracy = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+                const timeTaken = Math.round(((endTime - new Date(appState.startTime)) / 1000));
+                const minutes = Math.floor(timeTaken / 60);
+                const seconds = timeTaken % 60;
+                const timeString = `${minutes} 分 ${seconds} 秒`;
+                
+                const { analysis, suggestion } = analyzeErrors(appState.practiceLog);
+
+                let achievementsHtml = '';
+                if (appState.sessionAchievements.length > 0) {
+                    achievementsHtml = '<ul>';
+                    appState.sessionAchievements.forEach(id => {
+                        const ach = achievementDefs[id];
+                        if (ach) {
+                            achievementsHtml += `<li class="flex items-center gap-2">🏆 <strong>${ach.name}</strong>: ${ach.desc}</li>`;
+                        }
+                    });
+                    achievementsHtml += '</ul>';
+                } else {
+                    achievementsHtml = '<p>這次沒有解鎖新的成就，但別氣餒，你已經很努力了！</p>';
+                }
+
+                const wrongAnswers = appState.practiceLog.filter(log => !log.isCorrect);
+                let wrongAnswersHtml = '';
+                if (wrongAnswers.length > 0) {
+                    wrongAnswersHtml += '<ol class="list-decimal pl-5 space-y-4">';
+                    wrongAnswers.forEach(log => {
+                        let userAnswerDisplay = (typeof log.userAnswer === 'number') ? Number(log.userAnswer).toFixed(2).replace(/\.00$/, '') : log.userAnswer;
+                        let correctAnswerDisplay = (typeof log.correctAnswer === 'number') ? Number(log.correctAnswer).toFixed(2).replace(/\.00$/, '') : log.correctAnswer;
+
+                        wrongAnswersHtml += `<li class="p-2 bg-red-50 border-l-4 border-red-400 rounded">
+                            <div class="font-semibold ${isForScreen ? 'question-truncate' : ''}">題目：${log.question}</div>
+                            <div><span class="font-semibold text-red-600">你的答案：</span> ${userAnswerDisplay}</div>
+                            <div><span class="font-semibold text-green-600">正確答案：</span> ${correctAnswerDisplay}</div>
+                        </li>`;
+                    });
+                    wrongAnswersHtml += '</ol>';
+                }
+
+                const fullLogHtml = generateFullLogTable(isForScreen);
+
+                return `
+                    <div class="space-y-6">
+                        <div class="text-center">
+                            <h2 class="text-3xl font-bold text-sky-700">學習成果報告</h2>
+                            <p class="text-stone-500">${appState.studentName}，你完成了練習！</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div class="bg-stone-50 p-3 rounded-lg"><strong>開始時間：</strong> ${new Date(appState.startTime).toLocaleString('zh-TW')}</div>
+                            <div class="bg-stone-50 p-3 rounded-lg"><strong>結束時間：</strong> ${endTime.toLocaleString('zh-TW')}</div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                            <div class="bg-sky-100 p-4 rounded-lg"><div class="text-lg">答對題數</div><div class="text-3xl font-bold">${correctCount} / ${total}</div></div>
+                            <div class="bg-green-100 p-4 rounded-lg"><div class="text-lg">正確率</div><div class="text-3xl font-bold">${accuracy}%</div></div>
+                            <div class="bg-yellow-100 p-4 rounded-lg"><div class="text-lg">總時長</div><div class="text-3xl font-bold">${timeString}</div></div>
+                        </div>
+                        <div class="bg-amber-50 p-4 rounded-lg border-l-4 border-amber-400">
+                            <h3 class="font-bold text-lg text-amber-800">正向支持小語</h3>
+                            <p>每一次的練習，都是你變得更強的證明！無論結果如何，堅持下去的你就是最棒的！</p>
+                        </div>
+                        <div class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-400">
+                            <h3 class="font-bold text-lg text-yellow-800">本次解鎖成就</h3>
+                            ${achievementsHtml}
+                        </div>
+                        <div class="bg-rose-50 p-4 rounded-lg border-l-4 border-rose-400">
+                            <h3 class="font-bold text-lg text-rose-800">錯誤類型分析</h3>
+                            <p>${analysis}</p>
+                            <h3 class="font-bold text-lg text-rose-800 mt-2">概念加強建議</h3>
+                            <p>${suggestion}</p>
+                        </div>
+                        ${wrongAnswers.length > 0 ? `<div class="p-4 rounded-lg"><h3 class="font-bold text-xl mb-2">錯題回顧</h3>${wrongAnswersHtml}</div>` : ''}
+                        <div class="p-4 rounded-lg">
+                            <h3 class="font-bold text-xl mb-2">完整作答紀錄</h3>
+                            <div class="overflow-x-auto">${fullLogHtml}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+
+            function renderReport() {
+                const reportHtmlForScreen = generateReportHtml(true);
+                
+                reportSection.innerHTML = `
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+                        <h2 class="text-2xl font-bold text-stone-700">學習成果報告</h2>
+                        <div class="flex gap-2">
+                            <button id="achievements-btn-report" class="bg-yellow-400 text-yellow-900 font-bold py-2 px-4 rounded-lg hover:bg-yellow-500">🏆 查看所有成就</button>
+                            <button id="restart-btn" class="bg-orange-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600">返回首頁</button>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-center gap-4 my-4">
+                       <button id="export-report-word" class="flex-1 bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700">匯出 WORD</button>
+                       <button id="export-report-pdf" class="flex-1 bg-red-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-red-700">匯出 PDF</button>
+                       <button id="export-report-jpg" class="flex-1 bg-teal-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-teal-700">匯出 JPG</button>
+                    </div>
+                    <div id="report-display-content" class="border-t pt-4 mt-4">${reportHtmlForScreen}</div>
+                `;
+
+                requestAnimationFrame(() => {
+                    renderMath(reportSection);
+                });
+                
+                document.getElementById('export-report-word').addEventListener('click', () => exportReport('word'));
+                document.getElementById('export-report-pdf').addEventListener('click', () => exportReport('pdf'));
+                document.getElementById('export-report-jpg').addEventListener('click', () => exportReport('jpg'));
+                document.getElementById('achievements-btn-report').addEventListener('click', showAchievements);
+                document.getElementById('restart-btn').addEventListener('click', goHome);
+            }
+            
+            function exportHtmlToWord(htmlContent, filename = 'document.doc') {
+                const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' "+
+                    "xmlns:w='urn:schemas-microsoft-com:office:word' "+
+                    "xmlns='http://www.w3.org/TR/REC-html40'>"+
+                    "<head><meta charset='utf-8'><title>Export HTML to Word</title><style> table { border-collapse: collapse; width: 100%; } td, th { border: 1px solid #dddddd; text-align: left; padding: 8px; } </style></head><body>";
+                const footer = "</body></html>";
+                const sourceHTML = header + htmlContent + footer;
+
+                const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+                const fileDownload = document.createElement("a");
+                document.body.appendChild(fileDownload);
+                fileDownload.href = source;
+                fileDownload.download = filename;
+                fileDownload.click();
+                document.body.removeChild(fileDownload);
+            }
+
+            function exportReport(format) {
+                if (typeof window.jspdf === 'undefined') {
+                    alert('PDF 功能尚未載入完成，請稍後再試。');
+                    return;
+                }
+                const { jsPDF } = window.jspdf;
+                const studentName = appState.studentName || 'student';
+                const topicName = topics.find(t => t.id === appState.currentTopic)?.name || 'report';
+                const filename = `${studentName}_${topicName}_學習報告`;
+                
+                const fullReportHtml = generateReportHtml(false);
+
+                if (format === 'word') {
+                    exportHtmlToWord(fullReportHtml, `${filename}.doc`);
+                } else { 
+                    const tempContainer = document.createElement('div');
+                    tempContainer.style.position = 'absolute';
+                    tempContainer.style.left = '-9999px';
+                    tempContainer.style.width = '800px'; 
+                    tempContainer.style.padding = '20px';
+                    tempContainer.style.backgroundColor = 'white';
+                    tempContainer.innerHTML = fullReportHtml;
+                    document.body.appendChild(tempContainer);
+                    
+                    renderMath(tempContainer);
+
+                    html2canvas(tempContainer, { scale: 2 }).then(canvas => {
+                        if (format === 'jpg') {
+                            const link = document.createElement('a');
+                            link.download = `${filename}.jpg`;
+                            link.href = canvas.toDataURL('image/jpeg');
+                            link.click();
+                        } else if (format === 'pdf') {
+                            const imgData = canvas.toDataURL('image/png');
+                            const pdf = new jsPDF({ orientation: 'p', unit: 'px', format: [canvas.width, canvas.height] });
+                            pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+                            pdf.save(`${filename}.pdf`);
+                        }
+                        document.body.removeChild(tempContainer);
+                    }).catch(err => {
+                        console.error("html2canvas error:", err);
+                        document.body.removeChild(tempContainer);
+                    });
+                }
+            }
+            
+            function exportWorksheet() {
+                const topicName = topics.find(t => t.id === appState.currentTopic)?.name;
+                if (!topicName) {
+                    alert('請先選擇一個單元！');
+                    return;
+                }
+                appState.minRange = parseInt(rangeMinInput.value) || 1;
+                appState.maxRange = parseInt(rangeMaxInput.value) || 10;
+                const qCount = appState.totalQuestions;
+
+                const showAnswers = studentNameInput.value.toLowerCase() === 'ffrz';
+                let worksheetHtml = `<h1>${topicName} - 練習題本</h1><p>班級：__________ 姓名：__________</p><hr>`;
+                
+                for (let i = 0; i < qCount; i++) {
+                    const q = questionGenerators[appState.currentTopic]();
+                    worksheetHtml += `
+                        <div style="margin-top: 20px; page-break-inside: avoid;">
+                            <p><strong>第 ${i + 1} 題.</strong> ${q.question}</p>
+                            ${q.diagram ? `<div style="width: 200px; height: 150px; margin: 10px 0;">${q.diagram}</div>` : ''}
+                            <br><br><br>
+                            ${showAnswers ? `
+                                <div style="background-color:#f0f0f0; padding: 10px; border-left: 3px solid #ccc; margin-top: 10px;">
+                                    <p><strong>解答：</strong>${(typeof q.answer === 'number') ? q.answer.toFixed(2).replace(/\.00$/, '') : q.answer}</p>
+                                    <p><strong>步驟：</strong><br>${q.steps}</p>
+                                </div>` : ''}
+                            <hr style="margin-top: 20px;">
+                        </div>`;
+                }
+                
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = worksheetHtml;
+                renderMath(tempDiv);
+                
+                const filename = `${topicName}_練習題本${showAnswers ? '_(含解答)' : ''}.doc`;
+                exportHtmlToWord(tempDiv.innerHTML, filename);
+            }
+
+
+            function startTimer() {
+                stopTimer();
+                let secondsPassed = appState.isSessionActive && appState.startTime ? Math.floor((new Date() - new Date(appState.startTime)) / 1000) : 0;
+                timerInterval = setInterval(() => {
+                    secondsPassed++;
+                    const min = String(Math.floor(secondsPassed / 60)).padStart(2, '0');
+                    const sec = String(secondsPassed % 60).padStart(2, '0');
+                    timerEl.textContent = `⏱️ ${min}:${sec}`;
+                }, 1000);
+            }
+
+            function stopTimer() {
+                clearInterval(timerInterval);
+            }
+
+            function saveState() {
+                localStorage.setItem('mathPracticeState_similarity_v2', JSON.stringify(appState));
+            }
+
+            function loadState() {
+                const savedState = localStorage.getItem('mathPracticeState_similarity_v2');
+                if (savedState) {
+                    const parsedState = JSON.parse(savedState);
+                    appState.achievements = parsedState.achievements || {}; // Always load achievements
+                    if (parsedState.isSessionActive && parsedState.practiceLog.length > 0 && parsedState.currentQuestionIndex < parsedState.totalQuestions) {
+                        document.getElementById('resume-modal').classList.remove('hidden');
+                        document.getElementById('resume-yes').onclick = () => {
+                            appState = parsedState;
+                            document.getElementById('resume-modal').classList.add('hidden');
+                            studentNameInput.value = appState.studentName;
+                            document.querySelectorAll('.topic-select-btn').forEach(btn => btn.classList.remove('active'));
+                            document.querySelector(`#topic-${appState.currentTopic}`)?.classList.add('active');
+                            document.querySelectorAll('.q-count-btn').forEach(btn => {
+                                btn.classList.toggle('active', parseInt(btn.dataset.count) === appState.totalQuestions);
+                            });
+                            controlPanel.classList.add('hidden');
+                            practiceSession.classList.remove('hidden');
+                            reportSection.classList.add('hidden');
+                            startTimer();
+                            loadQuestion();
+                        };
+                        document.getElementById('resume-no').onclick = () => {
+                            localStorage.removeItem('mathPracticeState_similarity_v2');
+                            document.getElementById('resume-modal').classList.add('hidden');
+                        };
+                    }
+                }
+            }
+            
+            function initializeScratchpad(canvas) {
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                let painting = false;
+
+                function setCanvasSize() {
+                    const dpr = window.devicePixelRatio || 1;
+                    const rect = canvas.getBoundingClientRect();
+                    canvas.width = rect.width * dpr;
+                    canvas.height = rect.height * dpr;
+                    ctx.scale(dpr, dpr);
+                    ctx.lineWidth = 2;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.strokeStyle = '#333';
+                }
+                
+                resizeScratchpad = setCanvasSize;
+
+                function getPosition(event) {
+                    const rect = canvas.getBoundingClientRect();
+                    const source = event.touches ? event.touches[0] : event;
+                    return {
+                        x: source.clientX - rect.left,
+                        y: source.clientY - rect.top
+                    };
+                }
+
+                function startPainting(e) {
+                    e.preventDefault();
+                    painting = true;
+                    const pos = getPosition(e);
+                    ctx.beginPath();
+                    ctx.moveTo(pos.x, pos.y);
+                }
+
+                function finishPainting() {
+                    painting = false;
+                }
+
+                function draw(e) {
+                    if (!painting) return;
+                    e.preventDefault();
+                    const pos = getPosition(e);
+                    ctx.lineTo(pos.x, pos.y);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(pos.x, pos.y);
+                }
+
+                canvas.addEventListener('mousedown', startPainting);
+                canvas.addEventListener('mouseup', finishPainting);
+                canvas.addEventListener('mousemove', draw);
+                canvas.addEventListener('mouseout', finishPainting);
+
+                canvas.addEventListener('touchstart', startPainting);
+                canvas.addEventListener('touchend', finishPainting);
+                canvas.addEventListener('touchmove', draw);
+
+                window.addEventListener('resize', setCanvasSize);
+                
+                document.getElementById('clear-scratchpad').addEventListener('click', () => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                });
+            }
+            
+            const achievementDefs = {
+                streak3: { name: "連對3題！", desc: "連續答對3題" },
+                streak5: { name: "連對5題！", desc: "連續答對5題" },
+                quickAnswer: { name: "快問快答！", desc: "在10秒內答對題目" },
+                firstPractice: { name: "初次練習！", desc: "完成第一次練習" },
+                master_simple_measurement: { name: "測量大師", desc: "在「簡易測量」中全對" },
+                master_area_perimeter_ratios: { name: "比例大師", desc: "在「面積與周長關係」中全對" },
+                master_special_triangles: { name: "三角板大師", desc: "在「特殊直角三角形」中全對" },
+                master_trig_ratios: { name: "三角比大師", desc: "在「三角比」中全對" }
+            };
+
+            function updateAchievements(isCorrect, answerTime) {
+                if (isCorrect) {
+                    appState.correctStreak++;
+                    if (appState.correctStreak >= 3) unlockAchievement('streak3');
+                    if (appState.correctStreak >= 5) unlockAchievement('streak5');
+                    if (parseFloat(answerTime) <= 10) unlockAchievement('quickAnswer');
+                } else {
+                    appState.correctStreak = 0;
+                }
+            }
+
+            function unlockAchievement(id) {
+                if (appState.achievements[id]) return;
+                appState.achievements[id] = true;
+                appState.sessionAchievements.push(id); // Log achievement for this session
+                const toast = document.getElementById('achievement-toast');
+                document.getElementById('toast-text').textContent = achievementDefs[id].name;
+                toast.classList.add('show');
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+                saveState();
+            }
+            
+            function showAchievements() {
+                const grid = document.getElementById('achievements-grid');
+                grid.innerHTML = '';
+                for(const [id, ach] of Object.entries(achievementDefs)) {
+                    const unlocked = appState.achievements[id];
+                    const achDiv = document.createElement('div');
+                    achDiv.className = `p-4 rounded-lg text-center ${unlocked ? 'bg-yellow-200' : 'bg-gray-200'}`;
+                    achDiv.innerHTML = `<div class="text-4xl mb-2">${unlocked ? '🏆' : '❓'}</div><p class="font-bold">${ach.name}</p><p class="text-sm">${ach.desc}</p>`;
+                    grid.appendChild(achDiv);
+                }
+                document.getElementById('achievements-modal').classList.remove('hidden');
+            }
+            
+            function initializeApp() {
+                renderTopics();
+                initializeConfigSelectors();
+                initializeScratchpad(document.getElementById('scratchpad-canvas'));
+                
+                startPracticeBtn.addEventListener('click', startPractice);
+                exportWorksheetBtn.addEventListener('click', exportWorksheet);
+                
+                answerOptionsContainer.addEventListener('click', e => {
+                    if (e.target.matches('.choice-btn')) {
+                        handleMcqSelection(e.target);
+                    }
+                });
+                nextQuestionBtn.addEventListener('click', () => {
+                    if (appState.currentQuestionIndex >= appState.totalQuestions - 1) {
+                        finishPractice();
+                    } else {
+                        nextQuestion();
+                    }
+                });
+
+                homeBtn.addEventListener('click', goHome);
+                
+                document.getElementById('close-achievements').addEventListener('click', () => {
+                    document.getElementById('achievements-modal').classList.add('hidden');
+                });
+
+                loadState();
+            }
+
+            initializeApp();
+        });
+    </script>
+</body>
+</html>
+
